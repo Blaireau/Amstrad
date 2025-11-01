@@ -1,9 +1,10 @@
 ORG #8000
 
-init:
-ld hl, #C000
-ld de, #800
+; On setup ce qui va nous servir pour le décalage
+ld a, 0
+ld (#7FFE), a
 
+call init
 begin_loop:
 ld bc,#7F8E : out (c), c ; MODE 2
 call d_pique
@@ -17,6 +18,9 @@ call init
 jp begin_loop
 
 d_pique:
+ld bc,(#7FFE)
+add hl, bc
+inc bc : ld (#7FFE), bc
 LD A,%00010000
 LD (hl),A
 LD A,%00111000
@@ -43,6 +47,9 @@ LD (hl),A
 ret
 
 d_coeur:
+ld bc,(#7FFE)
+add hl, bc
+inc bc : ld (#7FFE), bc
 LD A,%01101100
 LD (hl),A
 LD A,%11101110
@@ -69,6 +76,9 @@ LD (hl),A
 ret
 
 d_trefle:
+ld bc,(#7FFE)
+add hl, bc
+inc bc : ld (#7FFE), bc
 LD A,%00010000
 LD (hl),A
 LD A,%00111000
@@ -95,6 +105,9 @@ LD (hl),A
 ret
 
 d_carreau:
+ld bc,(#7FFE)
+add hl, bc
+inc bc : ld (#7FFE), bc
 LD A,%00010000
 LD (hl),A
 LD A,%00111000
@@ -118,6 +131,11 @@ LD (hl),A
 LD A,%00010000
 add hl, de
 LD (hl),A
+ret
+
+init:
+ld hl, #C000
+ld de, #800
 ret
 
 SAVE 'CARDS.BIN',#100,$-#100,DSK,'cards.dsk'
