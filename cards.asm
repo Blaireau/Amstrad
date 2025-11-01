@@ -1,141 +1,99 @@
-ORG #8000
+BREAKPOINT
+BUILDSNA : BANKSET 0
+ORG #100
+RUN #100
 
-; On setup ce qui va nous servir pour le décalage
-ld a, 0
-ld (#7FFE), a
+; Position initiale
+ld bc, 0
+ld (#7ffe), bc
+ld hl, 0
+ld (#7ffc), hl
 
-call init
-begin_loop:
+loopy_loop:
+ld bc,#7F8E : out (c), c ; Switch en MODE 2
+; On charge les valeurs de position
+ld bc,(#7ffe) : ld hl,(#7ffc)  
+call CalculeAdressePixel
+ld (hl),%00010000 ; écrire le pixel
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%00111000
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%01111100
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%11111110
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%11111110
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%01101100
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%00010000
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+call CalculeAdressePixel
+ld (hl),%00111000
+ld hl, (#7ffc)
+inc hl : ld (#7ffc), hl
+ld bc, (#7ffe)
+inc bc : ld (#7ffe), bc
+jp loopy_loop ; boucle infinie
+
+CalculeAdressePixel
+; BC=coordonnée X (0-319)
+; HL=coordonnée Y (0-199)
+; Renvoie la coordonée dans HL / 
+ld de,tableau
+add hl,hl ; adresses 16 bits, il faut indexer de 2 en 2
+add hl,de
+ld a,(hl) : inc hl
+ld h,(hl) : ld l,a
+; HL=adresse de la ligne
+ld a,c ; on sauvegarde le X avant de diviser par 4
+srl bc ; : srl bc :srl bc ;:srl bc : srl bc ; diviser le X par 4 pour avoir l'octet en mode 1
+add hl,bc
+ld c,%10000000 ; encre 1 pour le pixel mode 1 le plus à gauche dans l'octet
+and 3 ; avec le modulo 4 on va savoir quel est le pixel en partant de la gauche
+jr z,.noShift
+.Shift
+srl c
+dec a
+jr nz,.Shift
+.noShift
+ret ; HL=adresse écran aux coordonnées X/Y données et C est le pixel d'encre 1
+
+inf_loop:
 ld bc,#7F8E : out (c), c ; MODE 2
-call d_pique
-call init
-call d_coeur
-call init
-call d_trefle
-call init
-call d_carreau
-call init
-jp begin_loop
+jr inf_loop
 
-d_pique:
-ld bc,(#7FFE)
-add hl, bc
-inc bc : ld (#7FFE), bc
-LD A,%00010000
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-LD A,%01111100
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%01101100
-add hl, de
-LD (hl),A
-LD A,%00010000
-add hl, de
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-ret
-
-d_coeur:
-ld bc,(#7FFE)
-add hl, bc
-inc bc : ld (#7FFE), bc
-LD A,%01101100
-LD (hl),A
-LD A,%11101110
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%01111100
-add hl, de
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-LD A,%00010000
-add hl, de
-LD (hl),A
-LD A,%00000000
-add hl, de
-LD (hl),A
-ret
-
-d_trefle:
-ld bc,(#7FFE)
-add hl, bc
-inc bc : ld (#7FFE), bc
-LD A,%00010000
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%01101100
-add hl, de
-LD (hl),A
-LD A,%00010000
-add hl, de
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-ret
-
-d_carreau:
-ld bc,(#7FFE)
-add hl, bc
-inc bc : ld (#7FFE), bc
-LD A,%00010000
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-LD A,%01111100
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%11111110
-add hl, de
-LD (hl),A
-LD A,%01111100
-add hl, de
-LD (hl),A
-LD A,%00111000
-add hl, de
-LD (hl),A
-LD A,%00010000
-add hl, de
-LD (hl),A
-ret
-
-init:
-ld hl, #C000
-ld de, #800
-ret
+;-------------------
+adresse_ecran=#C000
+largeur_ecran=80
+tableau
+repeat 25
+repeat 8
+defw adresse_ecran
+adresse_ecran+=#800
+rend
+adresse_ecran+=largeur_ecran
+adresse_ecran-=#4000
+rend 
 
 SAVE 'CARDS.BIN',#100,$-#100,DSK,'cards.dsk'
